@@ -1,0 +1,120 @@
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 60px 20px;
+  background: linear-gradient(135deg, #1f2937, #111827);
+}
+
+.app-card {
+  width: 100%;
+  max-width: 900px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 40px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.app-card h1 {
+  margin-bottom: 10px;
+  font-size: 2rem;
+}
+
+h2, h3 {
+  color: #111827;
+}
+
+.report-card ul {
+  color: #374151;
+}
+
+.report-card li {
+  margin-bottom: 6px;
+}
+
+.subtitle {
+  color: #6b7280;
+  margin-bottom: 30px;
+}
+
+.upload-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.upload-form input[type="file"] {
+  padding: 10px;
+  border: 2px dashed #d1d5db;
+  border-radius: 10px;
+  background: #f9fafb;
+  cursor: pointer;
+}
+
+.upload-form textarea {
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  resize: vertical;
+  font-size: 14px;
+}
+
+.upload-form button {
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.upload-form button:hover {
+  background: #1e40af;
+}
+
+.upload-form button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.report-card {
+  margin-top: 30px;
+  padding: 25px;
+  background: #f9fafb;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+}
+
+.risk-score {
+  margin-left: 10px;
+  font-weight: bold;
+  color: #dc2626;
+}
+
+.image-preview {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.image-preview img {
+  max-width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.report-card ul {
+  padding-left: 20px;
+}
+
+.report-card pre {
+  background: #111827;
+  color: #f3f4f6;
+  padding: 15px;
+  border-radius: 10px;
+  overflow: auto;
+  max-height: 300px;
+  font-size: 12px;
+}
