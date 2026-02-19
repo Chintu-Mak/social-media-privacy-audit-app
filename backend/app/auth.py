@@ -1,22 +1,29 @@
-# backend/app/auth.py
 from fastapi import APIRouter, HTTPException, Depends
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from .database import users_collection
+
+from fastapi import APIRouter, HTTPException
+from jose import jwt
+from passlib.context import CryptContext
 from pydantic import BaseModel
 
 SECRET_KEY = "supersecretkey"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
+from .config import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
+from .database import users_collection
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 router = APIRouter()
 
+
 class UserAuth(BaseModel):
     email: str
     password: str
+
 
 def hash_password(password: str):
     return pwd_context.hash(password)
@@ -52,6 +59,7 @@ async def signup(user: UserAuth):
         "email": email,
         "password": hashed
     })
+    await users_collection.insert_one({"email": email, "password": hashed})
 
     return {"message": "User created successfully"}
 
@@ -60,6 +68,8 @@ async def signup(user: UserAuth):
 async def login(user: UserAuth):
     email = user.get("email")
     password = user.get("password")
+    email = user.email
+    password = user.password
 
     db_user = await users_collection.find_one({"email": email})
     if not db_user:

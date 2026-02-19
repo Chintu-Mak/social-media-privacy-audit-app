@@ -15,6 +15,7 @@ print("Loaded Mongo URI:", MONGO_URI)
 
 if not MONGO_URI:
     raise ValueError("MONGO_URI is not set in .env file")
+from .config import MONGO_URI
 
 client = AsyncIOMotorClient(MONGO_URI)
 

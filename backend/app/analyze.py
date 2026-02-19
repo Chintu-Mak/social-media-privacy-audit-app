@@ -1,4 +1,3 @@
-# backend/app/analyze.py
 import io
 import base64
 import cv2
@@ -6,13 +5,24 @@ from io import BytesIO
 from PIL import Image
 import pytesseract
 import exifread
+import io
+import os
 import re
 import phonenumbers
+
+import cv2
 import numpy as np
 import spacy
 from .utils import extract_exif, detect_faces_and_blur
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+import pytesseract
+from PIL import Image
 
+from .utils import detect_faces_and_blur, extract_exif
+
+TESSERACT_CMD = os.getenv("TESSERACT_CMD")
+if TESSERACT_CMD:
+    pytesseract.pytesseract.tesseract_cmd = TESSERACT_CMD
 
 nlp = spacy.load("en_core_web_sm")
 
@@ -24,7 +34,7 @@ SSN_RE = re.compile(r"\b\d{3}-\d{2}-\d{4}\b")
 # ---------- Helper to sanitize numpy types ----------
 def to_native(obj):
     """Convert numpy scalars/arrays to Python native types."""
-    if isinstance(obj, (np.bool_, np.bool)):
+    if isinstance(obj, np.bool_):
         return bool(obj)
     if isinstance(obj, (np.integer, np.floating)):
         return obj.item()
@@ -59,12 +69,21 @@ def ocr_image(pil_image):
     return text
 
 
+PHONE_RE = re.compile(r"(?:(?:\+?\d{1,3}[ -]?)?(?:\(\d{2,4}\)|\d{2,4})[ -]?)?\d{3,4}[ -]?\d{3,4}")
+
 
 def find_phones(text):
     phones = []
     for match in phonenumbers.PhoneNumberMatcher(text, "IN"):
         phones.append(phonenumbers.format_number(match.number, phonenumbers.PhoneNumberFormat.E164))
     return phones
+    raw_matches = PHONE_RE.findall(text)
+    cleaned = []
+    for match in raw_matches:
+        digits = re.sub(r"\D", "", match)
+        if 10 <= len(digits) <= 15:
+            cleaned.append(match.strip())
+    return list(dict.fromkeys(cleaned))
 
 
 def find_emails(text):
@@ -82,6 +101,21 @@ def find_ssn(text):
 def ner_entities(text):
     doc = nlp(text)
     return [(ent.text, ent.label_) for ent in doc.ents]
+    # Placeholder lightweight entity extraction to avoid hard runtime dependency.
+    return []
+
+
+ADDRESS_KEYWORDS = [
+    "street",
+    "road",
+    "lane",
+    "avenue",
+    "sector",
+    "nagar",
+    "colony",
+    "apartment",
+    "flat",
+]
 
 ADDRESS_KEYWORDS = ["street", "road", "lane", "avenue", "sector", "nagar", "colony", "apartment", "flat"]
 
@@ -146,11 +180,29 @@ def analyze_image(file_bytes, filename="upload.jpg", caption=None):
         x, y, w, h = int(info["x"]), int(info["y"]), int(info["w"]), int(info["h"])
         cv2.rectangle(preview_img, (x, y), (x + w, y + h), (255, 0, 0), 3)  # Red box
         cv2.putText(preview_img, "Face", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
+        cv2.putText(
+            preview_img,
+            "Face",
+            (x, y - 10),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.7,
+            (255, 0, 0),
+            2,
+        )
 
     # If GPS exists, mark as metadata risk
     if gps:
         cv2.putText(preview_img, "⚠ GPS metadata found", (10, 30),
                     cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 3)
+        cv2.putText(
+            preview_img,
+            "GPS metadata found",
+            (10, 30),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1.0,
+            (0, 0, 255),
+            3,
+        )
 
     # Encode preview image as base64
     preview_pil = Image.fromarray(preview_img)
@@ -169,6 +221,7 @@ def analyze_image(file_bytes, filename="upload.jpg", caption=None):
         "ssn": ssn,
         "entities": ents,
         "sensitive_named_entities": sensitive_ents,
+        "addresses": address_hits,
         "faces": faces_count,
         "blur_info": blur_info,
     }
@@ -184,21 +237,34 @@ def analyze_image(file_bytes, filename="upload.jpg", caption=None):
     }
     return result
 
+
 # ---------- Recommendations ----------
 def generate_recommendations(findings, score):
     recs = []
     if findings.get("gps"):
         recs.append("Remove/strip GPS EXIF data before posting or disable location on your camera.")
+        recs.append(
+            "Remove/strip GPS EXIF data before posting or disable location on your camera."
+        )
     if findings.get("faces") and findings["faces"] > 0:
         recs.append("Consider blurring or obscuring faces if people might not want to be identified.")
+        recs.append(
+            "Consider blurring or obscuring faces if people might not want to be identified."
+        )
     if findings.get("phones"):
         recs.append("Remove visible phone numbers from images or redact contact numbers.")
     if findings.get("emails"):
         recs.append("Avoid showing personal email addresses; use contact forms instead.")
     if findings.get("creditcards") or findings.get("ssn"):
         recs.append("DO NOT post sensitive IDs or payment info. Delete or crop sensitive images.")
+        recs.append(
+            "DO NOT post sensitive IDs or payment info. Delete or crop sensitive images."
+        )
     if findings.get("sensitive_named_entities"):
         recs.append("Be cautious with captions or text revealing full names, addresses or employer details.")
+        recs.append(
+            "Be cautious with captions or text revealing full names, addresses or employer details."
+        )
     if score < 20:
         recs.append("Low risk detected — good to go, but double-check before posting.")
     return recs
