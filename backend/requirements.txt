@@ -6,5 +6,6 @@ passlib[argon2]
 python-jose
 pydantic
 python-multipart
+pyresseract
 opencv-python-headless
 Pillow
