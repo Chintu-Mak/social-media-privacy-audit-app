@@ -10,4 +10,6 @@ pytesseract
 opencv-python-headless
 Pillow
 exifread
-
+phonenumbers
+bcrypt
+email-validator
