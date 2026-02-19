@@ -9,3 +9,5 @@ python-multipart
 pytesseract
 opencv-python-headless
 Pillow
+exifread
+
