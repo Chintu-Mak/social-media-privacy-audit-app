@@ -2,7 +2,7 @@ fastapi
 uvicorn
 motor
 python-dotenv
-passlib[argon2]
+passlib[bcrypt]==1.7.4
 python-jose
 pydantic
 python-multipart
@@ -11,6 +11,6 @@ opencv-python-headless
 Pillow
 exifread
 phonenumbers
-bcrypt
+bcrypt==4.0.1
 email-validator
 spacy
