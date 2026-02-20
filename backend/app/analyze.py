@@ -14,7 +14,6 @@ import cv2
 import numpy as np
 import spacy
 from .utils import extract_exif, detect_faces_and_blur
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 import pytesseract
 from PIL import Image
 
