@@ -66,12 +66,11 @@ async def signup(user: UserAuth):
 
 @router.post("/login")
 async def login(user: UserAuth):
-    email = user.get("email")
-    password = user.get("password")
     email = user.email
     password = user.password
 
-    db_user = await users_collection.find_one({"email": email})
+    db_user = users_collection.find_one({"email": email})
+    
     if not db_user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
